@@ -28,7 +28,6 @@ root_dir = "input/img"
 
 class DCGAN():
     def __init__(self):
-
         self.class_names = os.listdir(root_dir)
 
         self.shape = (160, 160, 3)
@@ -36,16 +35,16 @@ class DCGAN():
 
         optimizer = Adam(lr=0.0002, beta_1=0.5)
 
-        #         self.discriminator = self.build_discriminator()
-        #         self.discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-
-        self.discriminator = load_model("drive/GAN_anime/output/models2/d/dcgan-50000-iter.h5")
+        self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-        #         self.generator = self.build_generator()
+        #         self.discriminator = load_model("drive/GAN_anime/output/models2/d/dcgan-50000-iter.h5")
+        #         self.discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-        self.generator = load_model("drive/GAN_anime/output/models/dcgan-50000-iter.h5")
-        self.generator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        self.generator = self.build_generator()
+
+        #         self.generator = load_model("drive/GAN_anime/output/models/dcgan-50000-iter.h5")
+        #         self.generator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
         # self.generator.compile(loss='binary_crossentropy', optimizer=optimizer)
 
@@ -67,22 +66,26 @@ class DCGAN():
         model.add(Dense(160 * 40 * 40, activation="relu", input_shape=noise_shape))
         model.add(Reshape((40, 40, 160)))
         model.add(BatchNormalization(momentum=0.8))
-        # model.add(UpSampling2D())
-        model.add(Conv2DTranspose(80, kernel_size=3, padding="same"))
+        model.add(UpSampling2D())
+
+        model.add(Conv2D(80, kernel_size=3, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.3))
+        model.add(UpSampling2D())
+
+        model.add(Conv2D(160, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.3))
 
-        model.add(Conv2DTranspose(160, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Conv2DTranspose(320, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Conv2DTranspose(640, kernel_size=3, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.3))
+        # model.add(Conv2DTranspose(320, kernel_size=3, padding="same"))
+        # model.add(BatchNormalization(momentum=0.8))
+        # model.add(LeakyReLU(alpha=0.3))
+        #
+        # model.add(Conv2DTranspose(640, kernel_size=3, padding="same"))
+        # model.add(BatchNormalization(momentum=0.8))
+        # model.add(LeakyReLU(alpha=0.3))
+        #
+        model.add(Conv2D(3, kernel_size=3, padding="same"))
 
         model.add(Activation("tanh"))
 
@@ -98,24 +101,27 @@ class DCGAN():
 
         model = Sequential()
 
-        model.add(Conv2DTranspose(40, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
+        model.add(Conv2D(40, kernel_size=3, strides=2, input_shape=img_shape, padding="same"))
         model.add(LeakyReLU(alpha=0.2))
+        model.add(ZeroPadding2D(padding=((0, 1), (0, 1))))
 
-        model.add(Conv2DTranspose(80, kernel_size=3, strides=2, padding="same"))
+
+        model.add(Conv2D(80, kernel_size=3, strides=2, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
 
-        model.add(Conv2DTranspose(160, kernel_size=3, strides=2, padding="same"))
+        model.add(Conv2D(160, kernel_size=3, strides=2, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
 
-        model.add(Conv2DTranspose(320, kernel_size=3, strides=2, padding="same"))
+        model.add(Conv2D(320, kernel_size=3, strides=2, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(LeakyReLU(alpha=0.2))
 
-        model.add(Conv2DTranspose(640, kernel_size=3, strides=2, padding="same"))
-        model.add(BatchNormalization(momentum=0.8))
-        model.add(LeakyReLU(alpha=0.2))
+        # model.add(Conv2DTranspose(640, kernel_size=3, strides=2, padding="same"))
+        # model.add(BatchNormalization(momentum=0.8))
+        # model.add(LeakyReLU(alpha=0.2))
+        model.add(Flatten())
         model.add(Dense(1, activation='sigmoid'))
         model.summary()
 
@@ -176,10 +182,10 @@ class DCGAN():
                 start = np.expand_dims(check_noise[0], axis=0)
                 end = np.expand_dims(check_noise[1], axis=0)
                 resultImage = self.visualizeInterpolation(start=start, end=end)
-                cv2.imwrite("drive/GAN_anime/output/img/latent4/" + "latent_{}.png".format(iteration), resultImage)
+                cv2.imwrite("drive/GAN_anime/output/img/latent5/" + "latent_{}.png".format(iteration), resultImage)
                 if iteration % model_interval == 0:
-                    self.generator.save("drive/GAN_anime/output/models4/g/dcgan-{}-iter.h5".format(iteration))
-                    self.discriminator.save("drive/GAN_anime/output/models4/d/dcgan-{}-iter.h5".format(iteration))
+                    self.generator.save("drive/GAN_anime/output/models5/g/dcgan-{}-iter.h5".format(iteration))
+                    self.discriminator.save("drive/GAN_anime/output/models5/d/dcgan-{}-iter.h5".format(iteration))
 
             count += 1
 
@@ -197,12 +203,11 @@ class DCGAN():
                 axs[i, j].imshow(gen_imgs[cnt, :, :, :])
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig('drive/GAN_anime/output/img/gen_img4/anime_%d.png' % iteration)
+        fig.savefig('drive/GAN_anime/output/img/gen_img5/anime_%d.png' % iteration)
 
         plt.close()
 
     def load_imgs(self):
-
         img_paths = []
         labels = []
         images = []
@@ -266,5 +271,5 @@ if __name__ == '__main__':
     dcgan = DCGAN()
     r, c = 5, 5
     check_noise = np.random.uniform(-1, 1, (r * c, 100))
-    dcgan.train(iterations=200000, batch_size=32, save_interval=1000, model_interval=5000, check_noise=check_noise, r=r,
+    dcgan.train(iterations=200000, batch_size=16, save_interval=1000, model_interval=5000, check_noise=check_noise, r=r,
                 c=c)
