@@ -1,0 +1,2 @@
+# DCGAN_anime_img_gen
+AnimeFaceDataSetをお借りして画像生成チャレンジ
